@@ -13,13 +13,17 @@
  * shown/track/fullscreen through `ctx.layout`; fullscreen keeps the reported
  * track but hides the outer resize handle. Everything arrives through the framework
  * shares — zero cordis or framework imports, zero self-made hooks.
+ *
+ * App-first order (`html[data-layout='app-first']`, set by a product plugin) puts the right column's
+ * occupant — the hosted app — at the window's left edge: app | sidebar | conversation. The app panel then
+ * defaults to the widest share and the Conversation keeps its protected minimum at the window's right edge.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
   HostObservable, InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime, PropsStore,
 } from '@deepseek-ai/dsh-client-ui-slots'
-import { CENTER_MIN, clampWidth, computeColumns, RIGHTBAR_DEFAULT_RATIO, RIGHTBAR_MAX_RATIO, RIGHTBAR_MIN, SIDEBAR_AUTO_COLLAPSE, SIDEBAR_COLLAPSED, SIDEBAR_DEFAULT, SIDEBAR_DRAWER_BREAKPOINT } from './columns.ts'
+import { APP_FIRST_RIGHTBAR_RATIO, CENTER_MIN, clampWidth, computeColumns, RIGHTBAR_DEFAULT_RATIO, RIGHTBAR_MAX_RATIO, RIGHTBAR_MIN, SIDEBAR_AUTO_COLLAPSE, SIDEBAR_COLLAPSED, SIDEBAR_DEFAULT, SIDEBAR_DRAWER_BREAKPOINT } from './columns.ts'
 import { DocumentTitle } from './DocumentTitle.tsx'
 import type { createLayoutStore } from './stores.ts'
 import css from './AppFrame.module.css'
@@ -181,7 +185,8 @@ export function AppFrame({
   const sidebarPreference = sidebarCollapsed
     ? 0
     : layoutInfo.sidebar === 0 ? SIDEBAR_DEFAULT : layoutInfo.sidebar
-  const rightbarPreference = layoutInfo.rightbar ?? viewport * RIGHTBAR_DEFAULT_RATIO
+  const appFirst = document.documentElement.dataset.layout === 'app-first'
+  const rightbarPreference = layoutInfo.rightbar ?? viewport * (appFirst ? APP_FIRST_RIGHTBAR_RATIO : RIGHTBAR_DEFAULT_RATIO)
   // Desktop reopen controls occupy the frame's shell.leading seat (macOS) or
   // the Windows caption row; neither platform keeps an icon rail.
   const darwin = document.documentElement.dataset.platform === 'darwin'
@@ -255,9 +260,10 @@ export function AppFrame({
     actions.setSidebar(sidebarBase.current + dx)
   }, [actions])
   const onRightbarStart = useCallback(() => { rightbarBase.current = rightbarWidth.current; setDragging(true) }, [])
+  // App-first: the handle sits on the app panel's right edge, so dragging right widens it
   const onRightbarDrag = useCallback((dx: number) => {
-    actions.setRightbar(rightbarBase.current - dx)
-  }, [actions])
+    actions.setRightbar(rightbarBase.current + (appFirst ? dx : -dx))
+  }, [actions, appFirst])
   const productTitle = process.env.DSH_CLIENT_TITLE ?? t('brand.localBuild')
   // The rendered template lets the grid solve the squeeze natively: the centre
   // declares its protected minimum and the right column bids up to the clamped
@@ -292,8 +298,9 @@ export function AppFrame({
       style={{
         ...(windowsTitlebar
           ? { '--dsh-windows-sidebar-width': `${cols.sidebar}px` } : {}),
-        gridTemplateColumns:
-          `${cols.sidebar}px minmax(${cols.rightbar === 0 ? 0 : CENTER_MIN}px, 1fr) minmax(0px, ${rightbarMax}px)`,
+        gridTemplateColumns: appFirst
+          ? `minmax(0px, ${rightbarMax}px) ${cols.sidebar}px minmax(${cols.rightbar === 0 ? 0 : CENTER_MIN}px, 1fr)`
+          : `${cols.sidebar}px minmax(${cols.rightbar === 0 ? 0 : CENTER_MIN}px, 1fr) minmax(0px, ${rightbarMax}px)`,
       }}
       data-sidebar-collapsed={sidebarCollapsed || undefined}
       data-sidebar-drawer={drawer || undefined}
@@ -301,6 +308,7 @@ export function AppFrame({
       data-rightbar-collapsed={cols.rightbar === 0 || undefined}
       data-rightbar-fullscreen={layoutInfo.rightbarFullscreen || undefined}
       data-rightbar-instant={layoutInfo.rightbarInstant || undefined}
+      data-app-first={appFirst || undefined}
       data-dragging={dragging || undefined}
       data-animating={animateTracks || undefined}
     >
@@ -334,9 +342,9 @@ export function AppFrame({
         </div>
       )}
       {/* The collapsed rail is fixed-width: no resize handle while closed. */}
-      {!drawer && !centeredSidebar && !sidebarCollapsed && <DragHandle side="sidebar" left={cols.sidebar} onStart={onSidebarStart} onDrag={onSidebarDrag} onEnd={onDragEnd} />}
+      {!drawer && !centeredSidebar && !sidebarCollapsed && <DragHandle side="sidebar" left={appFirst ? normal.rightbar + cols.sidebar : cols.sidebar} onStart={onSidebarStart} onDrag={onSidebarDrag} onEnd={onDragEnd} />}
       {layoutInfo.rightbarShown && !layoutInfo.rightbarFullscreen && normal.rightbar > 0 && (
-        <DragHandle side="rightbar" left={viewport - normal.rightbar} onStart={onRightbarStart} onDrag={onRightbarDrag} onEnd={onDragEnd} />
+        <DragHandle side="rightbar" left={appFirst ? normal.rightbar : viewport - normal.rightbar} onStart={onRightbarStart} onDrag={onRightbarDrag} onEnd={onDragEnd} />
       )}
     </div>
   )
