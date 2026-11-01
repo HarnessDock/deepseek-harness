@@ -1,0 +1,13 @@
+{
+  "$comment": "产品定制（HarnessDock lpm-desktop 分支）的打包部分：应用名、Bundle ID、URL scheme、产物文件名、麦克风用途说明；packages 是随安装包附带的本仓外插件目录（相对仓库根），打成 tarball 放进 Resources/product-plugins，首次启动时装进用户 profile。主进程里的应用名与数据目录在 src/product.ts，name 两处须一致。",
+  "name": "LPM",
+  "slug": "lpm",
+  "protocol": "lpm",
+  "microphoneUsage": "LPM uses your microphone to transcribe speech into message drafts.",
+  "packages": [
+    "../dsh-plugins/bundles/lpm-connect",
+    "../dsh-plugins/bundles/app-host",
+    "../dsh-plugins/bundles/lpm-brand"
+  ],
+  "appId": "com.harnessdock.lpm"
+}
