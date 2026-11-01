@@ -684,3 +684,18 @@
     animation: none;
   }
 }
+
+/* App-first order (ui-layout AppFrame): the sidebar sits at the window's right edge and its rail
+   carries no brand mark, so the toggle always shows the panel icon. The traffic lights are over the
+   app, not here, so the expanded strip keeps its toggle unshifted. */
+:global([data-layout='app-first']) .collapsed .toggle .panelIcon {
+  display: inline;
+}
+
+:global([data-layout='app-first']) .collapsed .toggle .railMark {
+  display: none;
+}
+
+:global(html[data-layout='app-first'][data-platform='darwin']) .root:not(.collapsed) > .topStrip > .toggle {
+  transform: none;
+}

@@ -387,30 +387,35 @@
   pointer-events: auto;
 }
 
-/* App-first order (AppFrame module doc): the right column's occupant, the hosted app, takes the
-   window's left edge, then the sidebar, then the Conversation at the right edge. Only the app reaches
-   the top-left corner, so its first tab strip clears the window controls and the Conversation does not. */
+/* App-first order (AppFrame module doc): app | conversation | sidebar. Only the app reaches the
+   top-left corner, so its first tab strip clears the window controls; the Conversation drops the
+   leading clearance, and the sidebar draws its separator on its left edge. */
 .frame[data-app-first] .rightbarCol {
   grid-column: 1;
 }
 
-.frame[data-app-first] .sidebarCol {
-  grid-column: 2;
-  border-left: 0.5px solid var(--dsw-alias-border-l3);
-}
-
 .frame[data-app-first] .centerCol {
-  grid-column: 3;
+  grid-column: 2;
   --dsh-frame-leading-clearance: 0px;
 }
 
-/* macOS traffic lights end near x 68 (see the fullscreen panel rule in ui-sidebar-right); a collapsed
-   sidebar adds the shell.leading controls, which the frame's leading clearance already covers. */
-:global([data-platform='darwin']) .frame[data-app-first] .rightbarCol :global([data-dockkit-host='dock'][data-dockkit-column='0']) {
-  --dsh-dockkit-strip-inline-start: max(88px, var(--dsh-frame-leading-clearance, 0px));
+.frame[data-app-first] .sidebarCol {
+  grid-column: 3;
+  border-right: none;
+  border-left: 0.5px solid var(--dsw-alias-border-l3);
 }
 
-:global([data-platform='darwin'][data-fullscreen]) .frame[data-app-first]:not([data-sidebar-collapsed]) .rightbarCol :global([data-dockkit-host='dock'][data-dockkit-column='0']) {
+/* The darwin closed-sidebar rule drops the centre's left seam; here the app sits on that side. */
+:global([data-platform='darwin']) .frame[data-app-first][data-sidebar-collapsed] .centerCol {
+  border-left: 0.5px solid var(--dsw-alias-border-l3);
+}
+
+/* macOS traffic lights end near x 68 (see the fullscreen panel rule in ui-sidebar-right). */
+:global([data-platform='darwin']) .frame[data-app-first] .rightbarCol :global([data-dockkit-host='dock'][data-dockkit-column='0']) {
+  --dsh-dockkit-strip-inline-start: 88px;
+}
+
+:global([data-platform='darwin'][data-fullscreen]) .frame[data-app-first] .rightbarCol :global([data-dockkit-host='dock'][data-dockkit-column='0']) {
   --dsh-dockkit-strip-inline-start: 10px;
 }
 

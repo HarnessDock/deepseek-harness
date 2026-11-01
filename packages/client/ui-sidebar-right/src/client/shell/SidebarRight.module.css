@@ -290,3 +290,9 @@
     animation-timing-function: step-end;
   }
 }
+
+/* App-first order (ui-layout AppFrame): the panel hosts the primary app, which stays open; the
+   collapse control is withdrawn so the panel strip only offers split and presentation. */
+:global([data-layout='app-first']) .panel :global([data-sidebar-right-toggle]) {
+  display: none;
+}

@@ -15,8 +15,10 @@
  * shares — zero cordis or framework imports, zero self-made hooks.
  *
  * App-first order (`html[data-layout='app-first']`, set by a product plugin) puts the right column's
- * occupant — the hosted app — at the window's left edge: app | sidebar | conversation. The app panel then
- * defaults to the widest share and the Conversation keeps its protected minimum at the window's right edge.
+ * occupant — the hosted app — at the window's left edge and the sidebar at the right edge:
+ * app | conversation | sidebar. The app panel defaults to the widest share, the Conversation keeps its
+ * protected minimum, and the closed sidebar keeps its icon rail on every platform: with the window
+ * controls over the app, the rail (not the shell.leading seat) carries the reopen control.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
@@ -190,7 +192,7 @@ export function AppFrame({
   // Desktop reopen controls occupy the frame's shell.leading seat (macOS) or
   // the Windows caption row; neither platform keeps an icon rail.
   const darwin = document.documentElement.dataset.platform === 'darwin'
-  const collapsedWidth = drawer || darwin || windowsTitlebar ? 0 : SIDEBAR_COLLAPSED
+  const collapsedWidth = drawer ? 0 : appFirst ? SIDEBAR_COLLAPSED : darwin || windowsTitlebar ? 0 : SIDEBAR_COLLAPSED
   // Opening on a narrow frame collapses the left sidebar. Eligibility must
   // include that space before the occupant's first shown report arrives.
   const normal = computeColumns(
@@ -257,8 +259,8 @@ export function AppFrame({
   const onDragEnd = useCallback(() => { setDragging(false) }, [])
   const onSidebarStart = useCallback(() => { sidebarBase.current = colsRef.current.sidebar; setDragging(true) }, [])
   const onSidebarDrag = useCallback((dx: number) => {
-    actions.setSidebar(sidebarBase.current + dx)
-  }, [actions])
+    actions.setSidebar(sidebarBase.current + (appFirst ? -dx : dx))
+  }, [actions, appFirst])
   const onRightbarStart = useCallback(() => { rightbarBase.current = rightbarWidth.current; setDragging(true) }, [])
   // App-first: the handle sits on the app panel's right edge, so dragging right widens it
   const onRightbarDrag = useCallback((dx: number) => {
@@ -289,7 +291,7 @@ export function AppFrame({
   // Windows native captions keep their controls in the caption row instead.
   // AppFrame.module.css reserves clearance for the seat's rendered controls.
   const leading = useMemo(() => renderSlot('shell.leading', {}), [renderSlot])
-  const leadingMounted = drawer || darwin && sidebarCollapsed
+  const leadingMounted = drawer || !appFirst && darwin && sidebarCollapsed
 
   return (
     <div
@@ -299,7 +301,7 @@ export function AppFrame({
         ...(windowsTitlebar
           ? { '--dsh-windows-sidebar-width': `${cols.sidebar}px` } : {}),
         gridTemplateColumns: appFirst
-          ? `minmax(0px, ${rightbarMax}px) ${cols.sidebar}px minmax(${cols.rightbar === 0 ? 0 : CENTER_MIN}px, 1fr)`
+          ? `minmax(0px, ${rightbarMax}px) minmax(${cols.rightbar === 0 ? 0 : CENTER_MIN}px, 1fr) ${cols.sidebar}px`
           : `${cols.sidebar}px minmax(${cols.rightbar === 0 ? 0 : CENTER_MIN}px, 1fr) minmax(0px, ${rightbarMax}px)`,
       }}
       data-sidebar-collapsed={sidebarCollapsed || undefined}
@@ -342,7 +344,7 @@ export function AppFrame({
         </div>
       )}
       {/* The collapsed rail is fixed-width: no resize handle while closed. */}
-      {!drawer && !centeredSidebar && !sidebarCollapsed && <DragHandle side="sidebar" left={appFirst ? normal.rightbar + cols.sidebar : cols.sidebar} onStart={onSidebarStart} onDrag={onSidebarDrag} onEnd={onDragEnd} />}
+      {!drawer && !centeredSidebar && !sidebarCollapsed && <DragHandle side="sidebar" left={appFirst ? viewport - cols.sidebar : cols.sidebar} onStart={onSidebarStart} onDrag={onSidebarDrag} onEnd={onDragEnd} />}
       {layoutInfo.rightbarShown && !layoutInfo.rightbarFullscreen && normal.rightbar > 0 && (
         <DragHandle side="rightbar" left={appFirst ? normal.rightbar : viewport - normal.rightbar} onStart={onRightbarStart} onDrag={onRightbarDrag} onEnd={onDragEnd} />
       )}
