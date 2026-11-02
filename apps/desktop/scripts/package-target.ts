@@ -25,6 +25,7 @@ import { suggestDesktopBuildVersion } from './desktop-build-version-discovery.ts
 import { desktopBuildCommitEnvironment, readDesktopBuildCommit, resolveDesktopBuildCommit } from './desktop-build-commit.mjs'
 import { requireDesktopToolchain } from './desktop-toolchain-preflight.ts'
 import { withMacOSNotarizationProxy } from './macos-notarization-proxy.ts'
+import { renderProductProfile } from './product-profile.ts'
 
 const DESKTOP_PRODUCT = JSON.parse(readFileSync(join(import.meta.dirname, '..', 'product.json'), 'utf8')) as { name: string; slug: string; packages: string[] }
 
@@ -508,6 +509,8 @@ export async function packageTarget(
     for (const dir of DESKTOP_PRODUCT.packages) {
       await executePreparation(['--dir', resolve(REPOSITORY_ROOT, dir), 'pack', '--pack-destination', productPlugins], buildEnv, REPOSITORY_ROOT)
     }
+    // The product's configuration of those plugins, written into the profile patch on launch (src/product-profile.ts)
+    writeFileSync(join(productPlugins, 'profile.yml'), renderProductProfile())
     await executePreparation(['run', 'release:pack', '--family', 'vendor', '--out', buildPaths.packedVendor, ...packArguments], buildEnv, REPOSITORY_ROOT)
     rmSync(buildPaths.packedLandlock, { recursive: true, force: true })
     mkdirSync(buildPaths.packedLandlock, { recursive: true })

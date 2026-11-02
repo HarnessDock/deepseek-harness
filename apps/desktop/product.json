@@ -1,5 +1,5 @@
 {
-  "$comment": "产品定制（HarnessDock lpm-desktop 分支）的打包部分：应用名、Bundle ID、URL scheme、产物文件名、麦克风用途说明；packages 是随安装包附带的本仓外插件目录（相对仓库根），打成 tarball 放进 Resources/product-plugins，首次启动时装进用户 profile。主进程里的应用名与数据目录在 src/product.ts，name 两处须一致。",
+  "$comment": "产品定制（HarnessDock lpm-desktop 分支）的打包部分：应用名、Bundle ID、URL scheme、产物文件名、麦克风用途说明；packages 是随安装包附带的本仓外插件目录（相对仓库根），打成 tarball 放进 Resources/product-plugins，首次启动时装进用户 profile。主进程里的应用名与数据目录在 src/product.ts，name 两处须一致。 profileEnv 是渲染 product/profile.yml 时读取服务地址的 env 文件（相对仓库根），渲染结果随插件放进 Resources/product-plugins/profile.yml，首次启动及每次更新时写进 profile 的 cordis.patch.yml。",
   "name": "LPM",
   "slug": "lpm",
   "protocol": "lpm",
@@ -7,8 +7,8 @@
   "packages": [
     "../dsh-plugins/bundles/gateway-connect",
     "../dsh-plugins/bundles/sub-apps",
-    "../dsh-plugins/bundles/brand",
-    "../dsh-plugins/bundles/lpm-preset"
+    "../dsh-plugins/bundles/brand"
   ],
-  "appId": "com.harnessdock.lpm"
+  "appId": "com.harnessdock.lpm",
+  "profileEnv": "../../LPM-NEXT/.env"
 }

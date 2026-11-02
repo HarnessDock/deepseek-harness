@@ -25,6 +25,6 @@ export const PRODUCT: DesktopProduct = {
   home: '.lpm',
   userData: 'HarnessDock LPM',
   deepseekWelcome: false,
-  retiredPlugins: ['@harnessdock/dsh-lpm-connect', '@harnessdock/dsh-app-host', '@harnessdock/dsh-lpm-brand'],
+  retiredPlugins: ['@harnessdock/dsh-lpm-connect', '@harnessdock/dsh-app-host', '@harnessdock/dsh-lpm-brand', '@harnessdock/dsh-lpm-preset'],
 }
 export const PRODUCT_NAME = PRODUCT.name

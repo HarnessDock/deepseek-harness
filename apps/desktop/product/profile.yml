@@ -1,0 +1,54 @@
+# LPM 产品配置：首次启动（及每次应用更新）时写进 desktop profile 的 cordis.patch.yml，给预装的通用插件填上 LPM 的值。
+# 打包时 scripts/product-profile.ts 把 {{…}} 换成 product.json 的 profileEnv（LPM-NEXT/.env）里的地址与随包标志；
+# 运行时环境变量仍然优先（本机开发用）。每个条目必须是顶格的 `- id:` 覆盖（插件 bundle 已自己插入）。
+
+# 网关接入：Casdoor（OIDC）登录 → authz 换 PAT（存 LPM_PAT）→ 模型走 Higress 网关，Agent / Skill / MCP 由 Resolver 下发
+- id: gateway-connect
+  config:
+    name: LPM
+    credential: LPM_PAT
+    dataDir: lpm
+    auth:
+      issuer: !!js process.env.CASDOOR_ENDPOINT ?? '{{casdoor}}'
+      clientId: !!js process.env.LPM_DESKTOP_CLIENT_ID ?? process.env.CASDOOR_CLIENT_ID ?? '{{clientId}}'
+      # 设了 LPM_DEV_USER 走开发签发（authz 需开 AUTHZ_DEV_ISSUE），否则 Casdoor 登录
+      devUser: !!js process.env.LPM_DEV_USER ?? ''
+      devRoles: !!js process.env.LPM_DEV_ROLES ?? ''
+      devDepts: !!js process.env.LPM_DEV_DEPTS ?? ''
+    tokenExchange:
+      url: !!js process.env.LPM_AUTHZ_URL ?? '{{authz}}'
+    provider:
+      id: lpm
+      displayName: LPM 网关
+    catalog:
+      url: !!js process.env.LPM_RESOLVER_URL ?? '{{resolver}}'
+      manifestPath: /resolver/manifest
+      configPath: /resolver/opencode-config
+      agentDir: agents/lpm
+      titleField: lpm_title
+      presetPrefix: lpm-
+      agentHeader: X-LPM-Agent
+
+# 新会话默认用 LPM 网关的模型
+- id: agent-default-model
+  config:
+    provider: lpm
+    model: !!js process.env.LPM_DEFAULT_MODEL ?? 'deepseek-v4-flash'
+
+# 子应用接入：LPM 网页，令牌用网关接入存的 LPM_PAT，每个会话自动打开
+- id: sub-apps
+  config:
+    apps:
+      - url: !!js process.env.LPM_WEB_URL ?? '{{web}}'
+        credential: LPM_PAT
+        autoOpen: true
+
+# 品牌外观：应用为主布局、会话列表启动时收起；侧栏不放标志，新会话首屏用 LPM 标志
+- id: brand
+  config:
+    name: LPM
+    logo: '{{logo}}'
+    sidebar: hidden
+    hero: custom
+    layout: app-first
+    collapseSessions: true

@@ -3,7 +3,8 @@
  * and before the Host starts they are added to the Desktop profile with the bundled `dsh plugin` command. Once installed
  * they are ordinary profile plugins, so the Plugins page can update, disable or remove them; a marker file records which
  * tarballs were installed, so a removed plugin stays removed and a newer tarball in an app update installs over the old one.
- * Plugins the product retired (PRODUCT.retiredPlugins, e.g. renamed) are removed in the same pass.
+ * Plugins the product retired (PRODUCT.retiredPlugins, e.g. renamed) are removed in the same pass. The product's configuration
+ * of its plugins (product-plugins/profile.yml) is merged into the profile patch on every launch, so app updates refresh it.
  */
 
 import { execFile } from 'node:child_process'
@@ -11,6 +12,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFi
 import { join } from 'node:path'
 import { promisify } from 'node:util'
 import { PRODUCT } from './product.ts'
+import { applyProductProfile } from './product-profile.ts'
 
 const MARKER = '.product-plugins.json'
 
@@ -22,6 +24,7 @@ const MARKER = '.product-plugins.json'
 export async function installProductPlugins(resources: string, profile: string): Promise<void> {
   const source = join(resources, 'product-plugins')
   if (!existsSync(source)) return
+  try { applyProductProfile(join(source, 'profile.yml'), profile) } catch (error) { console.error('desktop: product profile could not be applied', error) }
   const tarballs = readdirSync(source).filter(file => file.endsWith('.tgz')).sort()
   const markerPath = join(profile, MARKER)
   let installed: string[] = []
