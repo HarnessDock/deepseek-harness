@@ -29,8 +29,21 @@ export const RIGHTBAR_MIN = 300
 export const RIGHTBAR_MAX_RATIO = 0.7
 /** First-open right panel preference as a fraction of the frame. */
 export const RIGHTBAR_DEFAULT_RATIO = 0.45
-/** First-open preference in app-first order, where the right column hosts the primary app (capped by RIGHTBAR_MAX_RATIO). */
-export const APP_FIRST_RIGHTBAR_RATIO = 0.7
+/** App-first first-open conversation width: this fraction of the frame, clamped to [MIN, MAX]; the app takes the rest. */
+export const APP_FIRST_CENTER_RATIO = 0.36
+export const APP_FIRST_CENTER_MIN = 440
+export const APP_FIRST_CENTER_MAX = 560
+
+/**
+ * First-open app width in app-first order (the right column hosts the primary app): what remains after the
+ * collapsed sidebar rail and the preferred conversation width, so extra frame width goes to the app.
+ * @param viewport - frame width in px.
+ * @returns the app column preference (callers still clamp it by RIGHTBAR_MIN / RIGHTBAR_MAX_RATIO).
+ */
+export function appFirstRightbar(viewport: number): number {
+  const center = clampWidth(viewport * APP_FIRST_CENTER_RATIO, APP_FIRST_CENTER_MIN, APP_FIRST_CENTER_MAX)
+  return Math.round(viewport - SIDEBAR_COLLAPSED - center)
+}
 
 /**
  * Clamp a panel width into its contract range.
