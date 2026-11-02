@@ -13,9 +13,11 @@ export interface DesktopProduct {
   readonly userData: string
   /**
    * Whether startup without a model credential opens the DeepSeek account welcome window. Products that sign in
-   * through their own plugin (LPM: Casdoor in lpm-connect) turn it off and enter the workspace directly.
+   * through their own plugin (LPM: Casdoor through gateway-connect) turn it off and enter the workspace directly.
    */
   readonly deepseekWelcome: boolean
+  /** Package names of product plugins that were renamed or dropped; the first-launch installer removes them from the profile. */
+  readonly retiredPlugins: readonly string[]
 }
 
 export const PRODUCT: DesktopProduct = {
@@ -23,5 +25,6 @@ export const PRODUCT: DesktopProduct = {
   home: '.lpm',
   userData: 'HarnessDock LPM',
   deepseekWelcome: false,
+  retiredPlugins: ['@harnessdock/dsh-lpm-connect', '@harnessdock/dsh-app-host', '@harnessdock/dsh-lpm-brand'],
 }
 export const PRODUCT_NAME = PRODUCT.name

@@ -5,9 +5,10 @@
   "protocol": "lpm",
   "microphoneUsage": "LPM uses your microphone to transcribe speech into message drafts.",
   "packages": [
-    "../dsh-plugins/bundles/lpm-connect",
-    "../dsh-plugins/bundles/app-host",
-    "../dsh-plugins/bundles/lpm-brand"
+    "../dsh-plugins/bundles/gateway-connect",
+    "../dsh-plugins/bundles/sub-apps",
+    "../dsh-plugins/bundles/brand",
+    "../dsh-plugins/bundles/lpm-preset"
   ],
   "appId": "com.harnessdock.lpm"
 }
