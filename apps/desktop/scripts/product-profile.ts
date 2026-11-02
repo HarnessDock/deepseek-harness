@@ -1,6 +1,6 @@
 /**
- * Render product/profile.yml with the deployment's service addresses (product.json `profileEnv`, LPM-NEXT/.env; public
- * LPM_PUBLIC_* values win, as in LPM-NEXT apps/desktop/scripts/prepare.mjs) and the bundled logo.
+ * Render product/profile.yml with the development environment's Resolver address (product.json `profileEnv`, LPM-NEXT/.env;
+ * LPM_PUBLIC_RESOLVER_URL wins) and the bundled logo; every other address comes from each environment's discovery document.
  *   tsx scripts/product-profile.ts --out <file>        write the rendered profile (packaging)
  *   tsx scripts/product-profile.ts --apply <profile>   merge it into a profile's cordis.patch.yml (development desktop)
  */
@@ -23,14 +23,10 @@ export function renderProductProfile(): string {
   // The process environment wins over the file, as with dotenv
   const env: Record<string, string | undefined> = { ...fileEnv, ...process.env }
   const values: Record<string, string | undefined> = {
+    // 本机开发环境的 Resolver（其发现文档给出其余地址）
     resolver: env.LPM_PUBLIC_RESOLVER_URL ?? env.RESOLVER_PUBLIC_URL ?? `http://127.0.0.1:${env.RESOLVER_PORT ?? 7102}`,
-    authz: env.LPM_PUBLIC_AUTHZ_URL ?? env.AUTHZ_URL ?? `http://127.0.0.1:${env.AUTHZ_PORT ?? 7101}`,
-    casdoor: env.CASDOOR_ENDPOINT,
-    clientId: env.LPM_DESKTOP_CLIENT_ID ?? env.CASDOOR_CLIENT_ID,
-    web: env.LPM_PUBLIC_WEB_URL ?? env.LPM_WEB_URL ?? 'http://localhost:5173',
     logo: `data:image/svg+xml;base64,${readFileSync(join(APP_ROOT, 'product', 'logo.svg')).toString('base64')}`,
   }
-  if (!values.casdoor || !values.clientId) throw new Error('product profile: CASDOOR_ENDPOINT and CASDOOR_CLIENT_ID are required for sign-in')
   return readFileSync(join(APP_ROOT, 'product', 'profile.yml'), 'utf8').replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
     if (values[key] === undefined) throw new Error(`product profile: unknown placeholder ${key}`)
     return values[key].replace(/'/g, "''")

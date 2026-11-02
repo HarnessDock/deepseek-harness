@@ -1,16 +1,21 @@
 /**
  * Product configuration for the profile's own patch layer: the product (product/profile.yml, rendered at packaging time)
  * configures its preinstalled plugins by id-targeted overrides in the profile's cordis.patch.yml, which applies after every
- * bundle layer regardless of bundle order. Each product entry is written between marker comments so a later app version can
- * replace it; an entry the user wrote for the same id (outside the markers) wins and the product's is skipped.
+ * bundle layer regardless of bundle order. Each product entry is written between marker comments carrying a hash of what was
+ * written: a later app version replaces a block still matching its hash, keeps a block edited since (by hand or through the
+ * settings service, e.g. switching environments), and skips ids the user configured outside the markers.
  */
 
+import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const BEGIN = '# >>> product:'
 const END = '# <<< product'
 const ENTRY = /^- id: ['"]?([^'"\s]+)/
+// The hash is absent in markers written before it existed; such blocks count as unedited
+const MARKER = /^# >>> product: ([^\s（]+)(?: ([0-9a-f]{12}))?/
+const digest = (text: string): string => createHash('sha256').update(text.trim()).digest('hex').slice(0, 12)
 
 /** One top-level `- id:` entry of the product profile with the comment lines directly above it. */
 interface ProductEntry { id: string; text: string }
@@ -46,14 +51,23 @@ export function productEntries(text: string): ProductEntry[] {
  */
 export function mergeProductEntries(patch: string, entries: ProductEntry[]): string {
   const kept: string[] = []
-  let inside = false
+  /** Product blocks edited since they were written: kept verbatim, in place */
+  const edited = new Set<string>()
+  let block: { id: string; hash: string; lines: string[] } | undefined
   for (const line of patch.split('\n')) {
-    if (line.startsWith(BEGIN)) { inside = true; continue }
-    if (inside) { if (line.startsWith(END)) inside = false; continue }
-    kept.push(line)
+    const marker = MARKER.exec(line)
+    if (marker?.[1] !== undefined) { block = { id: marker[1], hash: marker[2] ?? '', lines: [line] }; continue }
+    if (!block) { kept.push(line); continue }
+    block.lines.push(line)
+    if (!line.startsWith(END)) continue
+    const body = block.lines.slice(1, -1).join('\n')
+    if (block.hash && digest(body) !== block.hash) { edited.add(block.id); kept.push(...block.lines) }
+    block = undefined
   }
+  if (block) kept.push(...block.lines)
   const userIds = new Set(kept.map(line => ENTRY.exec(line)?.[1]).filter(Boolean))
-  const blocks = entries.filter(entry => !userIds.has(entry.id)).map(entry => `${BEGIN} ${entry.id}（随应用更新，要自定义请在标记外另写同 id 的条目）\n${entry.text}\n${END}`)
+  const blocks = entries.filter(entry => !userIds.has(entry.id) && !edited.has(entry.id))
+    .map(entry => `${BEGIN} ${entry.id} ${digest(entry.text)}（随应用更新；改过的保留，要固定自定义请在标记外另写同 id 的条目）\n${entry.text}\n${END}`)
   const body = kept.join('\n').replace(/\n+$/, '')
   const base = /^\s*(#.*\n)*\s*\[\]\s*$/.test(body) ? body.replace(/\[\]\s*$/, '').replace(/\n+$/, '') : body
   return `${[base, ...blocks].filter(Boolean).join('\n')}\n`
