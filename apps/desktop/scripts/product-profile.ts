@@ -18,7 +18,7 @@ const PRODUCT = JSON.parse(readFileSync(join(APP_ROOT, 'product.json'), 'utf8'))
 /** @returns the rendered product profile text. */
 export function renderProductProfile(): string {
   const envFile = process.env.PRODUCT_ENV ?? (PRODUCT.profileEnv ? resolve(REPOSITORY_ROOT, PRODUCT.profileEnv) : undefined)
-  let fileEnv: Record<string, string> = {}
+  let fileEnv: Record<string, string | undefined> = {}
   try { if (envFile) fileEnv = parseEnv(readFileSync(envFile, 'utf8')) } catch { console.warn(`product profile: ${envFile} not found, using the process environment only`) }
   // The process environment wins over the file, as with dotenv
   const env: Record<string, string | undefined> = { ...fileEnv, ...process.env }
