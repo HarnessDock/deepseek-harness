@@ -1,6 +1,6 @@
 // First: the product's default DSH_HOME must be set before any module resolves paths
 import './product-home.ts'
-import { PRODUCT_NAME } from './product.ts'
+import { PRODUCT, PRODUCT_NAME } from './product.ts'
 import { installProductPlugins } from './product-plugins.ts'
 import { installFileActions } from './file-actions.ts'
 import type { ProductEventMap, ProductEvent } from '@deepseek-ai/dsh-client-product-analytics/types'
@@ -49,7 +49,7 @@ import { pruneCrashReports, RendererConsoleTail, writeCrashReport, type CrashRep
 import { OperationJournal } from './operation-journal.ts'
 import { runOperationReportJob, type OperationReportJobResult } from './operation-report-job.ts'
 import { openWelcomeWindow } from './welcome-window.ts'
-import { WELCOME_IPC, needsWelcome, type WelcomeNotice } from './welcome-api.ts'
+import { WELCOME_IPC, needsWelcome as needsAccountWelcome, type WelcomeNotice } from './welcome-api.ts'
 import { connectDesktopWelcome, type DesktopWelcomeBackend } from './welcome-backend.ts'
 import { DesktopUpdateJournal } from './update-journal.ts'
 import { DesktopUpdatePreparationError } from './update-error.ts'
@@ -71,6 +71,10 @@ import { DesktopUpdateOverlays } from './update-overlay.ts'
 import { DesktopQuitConfirmation } from './quit-confirmation.ts'
 import { DesktopTray } from './tray.ts'
 import { DesktopBackgroundNotice } from './background-notice.ts'
+
+/** The product may sign in through its own plugin instead of the DeepSeek account welcome window. */
+const needsWelcome = (authentication: Parameters<typeof needsAccountWelcome>[0]): boolean =>
+  PRODUCT.deepseekWelcome && needsAccountWelcome(authentication)
 
 let focusPrimaryWindow = (): void => {}
 let stopForRecovery = async (): Promise<void> => { await stopOperationReports() }

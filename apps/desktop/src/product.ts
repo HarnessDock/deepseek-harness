@@ -11,11 +11,17 @@ export interface DesktopProduct {
   readonly home: string
   /** Electron user-data directory name under the platform application-data folder (packaged builds). */
   readonly userData: string
+  /**
+   * Whether startup without a model credential opens the DeepSeek account welcome window. Products that sign in
+   * through their own plugin (LPM: Casdoor in lpm-connect) turn it off and enter the workspace directly.
+   */
+  readonly deepseekWelcome: boolean
 }
 
 export const PRODUCT: DesktopProduct = {
   name: 'LPM',
   home: '.lpm',
   userData: 'HarnessDock LPM',
+  deepseekWelcome: false,
 }
 export const PRODUCT_NAME = PRODUCT.name
