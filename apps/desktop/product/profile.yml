@@ -1,5 +1,5 @@
 # LPM 产品配置：首次启动及每次应用更新时写进 desktop profile 的 cordis.patch.yml（src/product-profile.ts），给预装的通用插件填上 LPM 的值。
-# 每个环境只配 Resolver 的发现文档（/.well-known/dsh）：登录（Casdoor）、换 PAT（authz）、组织目录、LPM 网页地址都由该环境的服务自己给出。
+# 每个环境只配 Resolver 的发现文档（/.well-known/dsh）：登录（Casdoor）、换 PAT（authz）、模型网关、LPM 网页与 Agent 列表、资产层（HiMarket）都由该环境的服务自己给出。
 # 加环境（如 test）：在 gateway-connect 与 sub-apps 的 environments 里各加一项同名环境，凭据名分开（如 LPM_PAT_TEST）。
 # 打包时 scripts/product-profile.ts 把 {{…}} 换成 product.json 的 profileEnv（LPM-NEXT/.env）里的值；运行时环境变量仍然优先（本机开发用）。
 # 每个条目必须是顶格的 `- id:` 覆盖（插件 bundle 已自己插入）。账号菜单里切换环境会改这里的 environment，改过的条目应用更新时保留。
@@ -9,7 +9,6 @@
   config:
     name: LPM
     credential: LPM_PAT
-    dataDir: lpm
     environments:
       dev:
         label: 本机开发
@@ -29,9 +28,11 @@
     provider: lpm
     model: !!js process.env.LPM_DEFAULT_MODEL ?? 'deepseek-v4-flash'
 
-# 子应用接入：LPM 网页地址读当前环境的发现文档，令牌用该环境的凭据，每个会话自动打开
+# 子应用接入：LPM 网页地址读当前环境的发现文档，令牌用该环境的凭据，每个会话自动打开；
+# LPM 声明的 Agent 按资产层（HiMarket）解析后各成一个预设（lpm-<agent>），Skill 缓存在 ~/.dsh/lpm
 - id: sub-apps
   config:
+    dataDir: lpm
     environments:
       dev:
         label: 本机开发
