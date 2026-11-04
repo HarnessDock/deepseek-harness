@@ -399,6 +399,16 @@
   --dsh-frame-leading-clearance: 0px;
 }
 
+/* With the app panel closed the Conversation reaches the top-left corner itself: its title row
+   clears the macOS traffic lights (to x 68, then 16px of air). Fullscreen hides them. */
+:global([data-platform='darwin']) .frame[data-app-first][data-rightbar-collapsed] .centerCol {
+  --dsh-frame-leading-clearance: 84px;
+}
+
+:global([data-platform='darwin'][data-fullscreen]) .frame[data-app-first][data-rightbar-collapsed] .centerCol {
+  --dsh-frame-leading-clearance: 0px;
+}
+
 .frame[data-app-first] .sidebarCol {
   grid-column: 3;
   border-right: none;
