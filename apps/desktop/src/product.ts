@@ -1,5 +1,5 @@
 /**
- * Product identity of this Desktop build (HarnessDock lpm-desktop branch). Packaging reads ../product.json;
+ * Product identity of this Desktop build (HarnessDock platform desktop, lpm-desktop branch). Packaging reads ../product.json;
  * `name` must match its `name`, which electron-builder uses for the app bundle and installer.
  */
 
@@ -13,7 +13,7 @@ export interface DesktopProduct {
   readonly userData: string
   /**
    * Whether startup without a model credential opens the DeepSeek account welcome window. Products that sign in
-   * through their own plugin (LPM: Casdoor through gateway-connect) turn it off and enter the workspace directly.
+   * through their own plugin (HarnessDock: Casdoor through gateway-connect) turn it off and enter the workspace directly.
    */
   readonly deepseekWelcome: boolean
   /** Package names of product plugins that were renamed or dropped; the first-launch installer removes them from the profile. */
@@ -21,9 +21,9 @@ export interface DesktopProduct {
 }
 
 export const PRODUCT: DesktopProduct = {
-  name: 'LPM',
-  home: '.lpm',
-  userData: 'HarnessDock LPM',
+  name: 'HarnessDock',
+  home: '.harnessdock',
+  userData: 'HarnessDock',
   deepseekWelcome: false,
   retiredPlugins: ['@harnessdock/dsh-lpm-connect', '@harnessdock/dsh-app-host', '@harnessdock/dsh-lpm-brand', '@harnessdock/dsh-lpm-preset'],
 }

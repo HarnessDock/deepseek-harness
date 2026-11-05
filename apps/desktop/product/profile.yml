@@ -1,5 +1,6 @@
-# LPM 产品配置：首次启动及每次应用更新时写进 desktop profile 的 cordis.patch.yml（src/product-profile.ts），给预装的通用插件填上 LPM 的值。
-# 每个环境只配 Resolver 的发现文档（/.well-known/dsh）：登录（Casdoor）、换 PAT（authz）、模型网关、LPM 网页与 Agent 列表、资产层（HiMarket）都由该环境的服务自己给出。
+# HarnessDock 平台桌面端的产品配置：首次启动及每次应用更新时写进 desktop profile 的 cordis.patch.yml（src/product-profile.ts），给预装的通用插件填上平台的值。
+# LPM 只是平台上的一个子应用；凭据名 LPM_PAT、数据目录 lpm 等沿用旧名，改了会让已登录的用户重新登录。
+# 每个环境只配 Resolver 的发现文档（/.well-known/dsh）：登录（Casdoor）、换 PAT（authz）、AI 网关、各子应用（LPM 网页、知识库、能力市场）与 Agent 列表、资产层（HiMarket）都由该环境的服务自己给出。
 # 加环境（如 test）：在 gateway-connect 与 sub-apps 的 environments 里各加一项同名环境，凭据名分开（如 LPM_PAT_TEST）。
 # 打包时 scripts/product-profile.ts 把 {{…}} 换成 product.json 的 profileEnv（LPM-NEXT/.env）里的值；运行时环境变量仍然优先（本机开发用）。
 # 每个条目必须是顶格的 `- id:` 覆盖（插件 bundle 已自己插入）。账号菜单里切换环境会改这里的 environment，改过的条目应用更新时保留。
@@ -7,7 +8,7 @@
 # 网关接入：按当前环境的发现文档接入；切换环境时 sub-apps 一起切
 - id: gateway-connect
   config:
-    name: LPM
+    name: HarnessDock
     credential: LPM_PAT
     environments:
       dev:
@@ -22,14 +23,14 @@
       devRoles: !!js process.env.LPM_DEV_ROLES ?? ''
       devDepts: !!js process.env.LPM_DEV_DEPTS ?? ''
 
-# 新会话默认用 LPM 网关的模型
+# 新会话默认用平台 AI 网关的模型
 - id: agent-default-model
   config:
     provider: lpm
     model: !!js process.env.LPM_DEFAULT_MODEL ?? 'deepseek-v4-flash'
 
-# 子应用接入：LPM 网页地址读当前环境的发现文档，令牌用该环境的凭据，每个会话自动打开；
-# LPM 声明的 Agent 按资产层（HiMarket）解析后各成一个预设（lpm-<agent>），Skill 缓存在 ~/.dsh/lpm
+# 子应用接入：子应用清单读当前环境的发现文档，令牌用该环境的凭据，每个会话自动打开；
+# 子应用声明的 Agent 按资产层（HiMarket）解析后各成一个预设（lpm-<agent>），Skill 缓存在 ~/.dsh/lpm
 - id: sub-apps
   config:
     dataDir: lpm
@@ -40,10 +41,10 @@
         credential: LPM_PAT
     environment: dev
 
-# 品牌外观：应用为主布局、会话列表启动时收起；侧栏不放标志，新会话首屏用 LPM 标志
+# 品牌外观：应用为主布局、会话列表启动时收起；侧栏不放标志，新会话首屏用平台标志
 - id: brand
   config:
-    name: LPM
+    name: HarnessDock
     logo: '{{logo}}'
     sidebar: hidden
     hero: custom
