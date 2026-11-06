@@ -30,6 +30,15 @@ export interface ToolBridgeOptions {
   registrationFailure: 'contain' | 'throw'
   serverName: string
   toolCallTimeoutMs: number
+  /** Raw tool names to expose (`*` wildcards); omitted or empty exposes every tool the server lists. */
+  tools?: string[]
+}
+
+/** Glob allowlist (`*` only) over raw MCP tool names; an empty list allows everything. */
+export function toolAllowlist(patterns: readonly string[] | undefined): (rawName: string) => boolean {
+  if (!patterns?.length) return () => true
+  const res = patterns.map(p => new RegExp(`^${p.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`))
+  return rawName => res.some(re => re.test(rawName))
 }
 
 /** State for one sync generation: the current set of disposers keyed by public name. */
@@ -121,7 +130,9 @@ export async function syncTools(
   const response = client.getServerCapabilities()?.tools === undefined
     ? { tools: [] }
     : await client.listTools(undefined, { cacheMode: 'refresh' })
+  const allowed = toolAllowlist(opts.tools)
   for (const tool of response.tools) {
+    if (!allowed(tool.name)) continue
     const publicName = publicToolName(opts.serverName, tool.name)
     if (definitions.has(publicName)) {
       throw new Error(

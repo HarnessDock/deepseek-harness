@@ -7,6 +7,7 @@
   "packages": [
     "../dsh-plugins/bundles/gateway-connect",
     "../dsh-plugins/bundles/sub-apps",
+    "../dsh-plugins/bundles/market",
     "../dsh-plugins/bundles/brand"
   ],
   "appId": "com.harnessdock.desktop",

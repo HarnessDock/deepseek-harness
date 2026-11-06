@@ -197,6 +197,22 @@ describe('syncTools', () => {
     expect(ctx.tools.get('add')).toBeUndefined()
   })
 
+  it('registers only tools matching the configured allowlist', async () => {
+    const client = createMockClient([
+      { name: 'table_list', inputSchema: { type: 'object' } },
+      { name: 'table_get', inputSchema: { type: 'object' } },
+      { name: 'record.delete', inputSchema: { type: 'object' } },
+      { name: 'kb_search', inputSchema: { type: 'object' } },
+    ])
+
+    const disposers = await syncTools(client as never, ctx, { ...defaultOpts, tools: ['table_*', 'record.delete'] }, new Map())
+
+    expect(disposers.size).toBe(3)
+    expect(ctx.tools.get('mcp__srv__table_list')).toBeDefined()
+    expect(ctx.tools.get('mcp__srv__table_get')).toBeDefined()
+    expect(ctx.tools.get('mcp__srv__kb_search')).toBeUndefined()
+  })
+
   it('lets two servers publish the same raw name side by side', async () => {
     const clientA = createMockClient([{ name: 'search', inputSchema: { type: 'object' } }])
     const clientB = createMockClient([{ name: 'search', inputSchema: { type: 'object' } }])
