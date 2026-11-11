@@ -25,6 +25,8 @@ export function renderProductProfile(): string {
   const values: Record<string, string | undefined> = {
     // 本机开发环境的 Resolver（其发现文档给出其余地址）
     resolver: env.LPM_PUBLIC_RESOLVER_URL ?? env.RESOLVER_PUBLIC_URL ?? `http://127.0.0.1:${env.RESOLVER_PORT ?? 7102}`,
+    // 平台 AI 网关的对外地址（联网搜索经它转发到 DeepSeek Search API）
+    gateway: (env.LPM_GATEWAY_URL || 'http://gateway.harnessdock.localhost').replace(/\/+$/, ''),
     logo: `data:image/svg+xml;base64,${readFileSync(join(APP_ROOT, 'product', 'logo.svg')).toString('base64')}`,
   }
   return readFileSync(join(APP_ROOT, 'product', 'profile.yml'), 'utf8').replace(/\{\{(\w+)\}\}/g, (_, key: string) => {

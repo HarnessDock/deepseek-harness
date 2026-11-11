@@ -29,6 +29,19 @@
     provider: lpm
     model: !!js process.env.LPM_DEFAULT_MODEL ?? 'deepseek-v4-flash'
 
+# 联网搜索：dsh 原生 web_search 走平台网关转发的 DeepSeek Search API，带登录拿到的 PAT（DeepSeek 的 Key 只在网关上，
+# LPM-NEXT infra/k8s/gateway-config/route-web-tools.sh）；读网页仍在本机直接抓取（fetchProvider 不动）。
+# baseURL / apiKeyEnv 是 dsh 0.2.x 的字段，search* 是新版的字段。
+- id: web
+  config:
+    searchProvider: deepseek-search-api
+- id: web-deepseek-api
+  config:
+    baseURL: !!js (process.env.LPM_GATEWAY_URL ?? '{{gateway}}') + '/v1/tools'
+    apiKeyEnv: LPM_PAT
+    searchBaseURL: !!js (process.env.LPM_GATEWAY_URL ?? '{{gateway}}') + '/v1/tools'
+    searchApiKeyEnv: LPM_PAT
+
 # 市场：HiMarket 地址与 Casdoor 登录（应用 harnessdock-market）取发现文档的 market 一节；登录后直接向 HiMarket 换开发者令牌。
 # Worker 包与 Skill 缓存在 $DSH_HOME/market
 - id: market
